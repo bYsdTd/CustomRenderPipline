@@ -18,6 +18,11 @@ partial class CameraRenderer
         this.context = context;
         this.camera = camera;
 
+        // 设置command buffer的name为摄像机的name
+        PrepareBuffer();
+        // for ugui render
+        PrepareForSceneWindow();
+
         if (!Cull())
         {
             return;
@@ -26,14 +31,16 @@ partial class CameraRenderer
         Setup();
         DrawVisibleGeometry();
         DrawUnsupportedShaders();
+        DrawGizmos();
         Submit();
     }
 
     void Setup()
     {
         context.SetupCameraProperties(camera);
-        buffer.ClearRenderTarget(true, true, Color.clear);
-        buffer.BeginSample(bufferName);
+        
+        buffer.ClearRenderTarget(camera.clearFlags <= CameraClearFlags.Depth, camera.clearFlags == CameraClearFlags.Color, camera.clearFlags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear);
+        buffer.BeginSample(SampleName);
         ExecuteBuffer();
     }
 
@@ -73,7 +80,7 @@ partial class CameraRenderer
 
     void Submit()
     {
-        buffer.EndSample(bufferName);
+        buffer.EndSample(SampleName);
         ExecuteBuffer();
         context.Submit();
     }
